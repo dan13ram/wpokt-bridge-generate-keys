@@ -1,5 +1,6 @@
 import { KeyManager } from "@pokt-foundation/pocketjs-signer";
 import { generatePrivateKey, privateKeyToAddress } from "viem/accounts";
+import { writeFileSync, ensureDirSync } from "fs-extra";
 
 const main = async () => {
   console.log("Generating Keys...");
@@ -8,6 +9,7 @@ const main = async () => {
   const ethereumKey = generatePrivateKey();
   console.log("Ethereum Private Key: ", ethereumKey.split("0x")[1]);
   const ethereumAddress = privateKeyToAddress(ethereumKey);
+  console.log("Ethereum Public Key: ", ethereumAddress);
   console.log("Ethereum Address: ", ethereumAddress);
   console.log("...");
   console.log("Generating Pocket Key...");
@@ -19,7 +21,31 @@ const main = async () => {
   const pocketAddress = pocketSigner.getAddress();
   console.log("Pocket Address: ", pocketAddress);
   console.log("...");
-  console.log("Keys Generated!");
+
+  const keys = {
+    ethereum: {
+      privateKey: ethereumKey,
+      publicKey: ethereumAddress,
+      address: ethereumAddress,
+    },
+
+    pocket: {
+      privateKey: pocketKey,
+      publicKey: pocketPublicKey,
+      address: pocketAddress,
+    },
+  };
+
+  const keysJson = JSON.stringify(keys, null, 2);
+
+  ensureDirSync("./keys");
+
+  const fileNameWithTimeStamp = `./keys/keys-${Date.now()}.json`;
+
+  writeFileSync(fileNameWithTimeStamp, keysJson);
+
+  console.log("Keys Generated Successfully!");
+  console.log("Keys saved in: ", fileNameWithTimeStamp);
 };
 
 main()
